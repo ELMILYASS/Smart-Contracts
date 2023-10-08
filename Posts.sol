@@ -15,7 +15,9 @@ contract Posts {
     }
     mapping(address => Post[] ) private Posts;
     address public owner;
-
+    event PostCreated(uint256 id, address author, string content);
+    event PostLiked(address liker, address PostAuthor, uint256 PostId, uint256 newLikeCount);
+    event PostUnliked(address unliker, address PostAuthor, uint256 PostId, uint256 newLikeCount);
     constructor() {
         owner = msg.sender;
     }
@@ -40,12 +42,14 @@ contract Posts {
         });
 
         Posts[msg.sender].push(newPost);
+        emit PostCreated(newPost.id, newPost.author, newPost.content);
     }
 
     function likePost(address author, uint256 id) external {  
         require(Posts[author][id].id == id, "Post DOES NOT EXIST");
 
         Posts[author][id].likes++;
+         emit PostLiked(msg.sender, author, id, Posts[author][id].likes);
     }
 
     function unlikePost(address author, uint256 id) external {
@@ -53,6 +57,7 @@ contract Posts {
         require(Posts[author][id].likes > 0, "Post HAS NO LIKES");
         
         Posts[author][id].likes--;
+        emit PostUnliked(msg.sender, author, id, Posts[author][id].likes );
     }
 
     function getPost( uint _i) public view returns (Post memory) {
