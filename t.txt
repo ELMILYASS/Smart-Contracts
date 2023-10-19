@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Vérifier que le script est exécuté en tant qu'administrateur
+if [ "$EUID" -ne 0 ]; then
+  echo "Ce script doit être exécuté en tant qu'administrateur (root)."
+  exit 1
+fi
+
+# Vérifier que le fichier d'entrée est spécifié en tant qu'argument
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 <fichier_utilisateurs>"
+  exit 1
+fi
+
+# Vérifier que le fichier d'entrée existe
+if [ ! -f "$1" ]; then
+  echo "Le fichier $1 n'existe pas."
+  exit 1
+fi
+
+# Compter le nombre de lignes dans le fichier (noms d'utilisateurs)
+num_users=$(wc -l < "$1")
+
+# Vérifier que le fichier contient au moins 10 noms d'utilisateurs
+if [ "$num_users" -lt 10 ]; then
+  echo "Le fichier doit contenir au moins 10 noms d'utilisateurs."
+  exit 1
+fi
+
+# Créer les comptes utilisateurs à partir du fichier (10 premiers noms)
+head -n 10 "$1" | while IFS= read -r username; do
+  useradd -m "$username" # Crée le compte et le répertoire personnel
+  passwd "$username"    # Définit un mot de passe pour le compte
+  echo "Compte $username créé avec succès."
+done
+
+echo "La création des 10 comptes est terminée."
